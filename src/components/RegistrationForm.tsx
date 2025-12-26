@@ -195,15 +195,14 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, prize, onCl
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  Preferred Location
+                  Location
                 </label>
-                <select
-                  value={formData.preferredLocation}
-                  onChange={(e) => handleInputChange('preferredLocation', e.target.value)}
-                  className="form-input cursor-pointer"
-                >
-                  <option value="Nellore">Nellore</option>
-                </select>
+                <input
+                  type="text"
+                  value="Nellore"
+                  disabled
+                  className="form-input cursor-not-allowed bg-muted/20 text-muted-foreground"
+                />
               </div>
 
               {/* Follow checkbox */}
