@@ -51,13 +51,15 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, isSpinning, setIs
     
     const winningIndex = getWeightedRandomSegment();
     
-    const segmentStartAngle = winningIndex * SEGMENT_ANGLE;
-    const segmentMidAngle = segmentStartAngle + (SEGMENT_ANGLE / 2);
+    // Calculate target rotation so pointer (at top/270°) lands on middle of winning segment
+    // Segment 0 starts at -90° (top), each segment is 60°
+    const segmentMidAngle = winningIndex * SEGMENT_ANGLE + (SEGMENT_ANGLE / 2);
     
+    // To land pointer on this segment, wheel needs to rotate so that segment is at top
     const targetAngle = 360 - segmentMidAngle;
     
-    const fullRotations = 4 + Math.floor(Math.random() * 3);
-    const finalRotation = rotation + (fullRotations * 360) + targetAngle + (Math.random() * 20 - 10);
+    const fullRotations = 5 + Math.floor(Math.random() * 3);
+    const finalRotation = (fullRotations * 360) + targetAngle;
     
     setRotation(finalRotation);
 
@@ -176,34 +178,30 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, isSpinning, setIs
               );
             })}
             
-            {/* Center circle */}
-            <circle
-              cx="150"
-              cy="150"
-              r="42"
-              fill="#0a0a0a"
-              stroke="#39FF14"
-              strokeWidth="3"
-            />
-          </svg>
-          
-          {/* Center logo (counter-rotate to stay fixed) */}
-          <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full overflow-hidden bg-black flex items-center justify-center z-10"
-            animate={{ rotate: -rotation }}
-            transition={{
-              duration: 6,
-              ease: [0.17, 0.67, 0.12, 0.99],
-            }}
+          {/* Center circle */}
+          <circle
+            cx="150"
+            cy="150"
+            r="42"
+            fill="#0a0a0a"
+            stroke="#39FF14"
+            strokeWidth="3"
+          />
+        </svg>
+      </motion.div>
+        
+      {/* Center logo (fixed, not rotating) */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full overflow-hidden bg-black flex items-center justify-center z-10 border-2 border-primary"
+        style={{ pointerEvents: 'none' }}
           >
-            <img
-              src={LOGO_URL}
-              alt="Future Fitness"
-              className="w-16 h-16 object-contain"
-            />
-          </motion.div>
-        </motion.div>
+        <img
+          src={LOGO_URL}
+          alt="Future Fitness"
+          className="w-16 h-16 object-contain"
+        />
       </div>
+    </div>
 
       {/* Spin Button */}
       <button

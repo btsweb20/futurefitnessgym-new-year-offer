@@ -26,6 +26,7 @@ const Index = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [wonPrize, setWonPrize] = useState('');
+  const [wonPrizeIcon, setWonPrizeIcon] = useState('');
 
   // Check campaign status
   useEffect(() => {
@@ -99,8 +100,9 @@ const Index = () => {
     playSpinSound();
   };
 
-  const handleSpinComplete = (segment: { label: string }, index: number) => {
+  const handleSpinComplete = (segment: { label: string; icon: string }, index: number) => {
     setWonPrize(segment.label);
+    setWonPrizeIcon(segment.icon);
     playWinSound();
     setTimeout(() => {
       setShowResult(true);
@@ -206,7 +208,7 @@ const Index = () => {
       </motion.section>
 
       {/* Share Section (after form submission) */}
-      <ShareSection isVisible={showShare} prize={wonPrize} />
+      <ShareSection isVisible={showShare} prize={wonPrize} prizeIcon={wonPrizeIcon} />
 
       {/* Footer */}
       <motion.footer
