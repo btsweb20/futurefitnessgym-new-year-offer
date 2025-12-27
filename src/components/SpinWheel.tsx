@@ -13,6 +13,7 @@ interface SpinWheelProps {
   onSpinComplete: (segment: Segment, index: number) => void;
   isSpinning: boolean;
   setIsSpinning: (spinning: boolean) => void;
+  disabled?: boolean;
 }
 
 const segments: Segment[] = [
@@ -27,7 +28,7 @@ const segments: Segment[] = [
 const SEGMENT_ANGLE = 360 / segments.length;
 const LOGO_URL = 'https://futurefitnessgymnellore.com/static/media/logo.2f698da7dd4e6a5054ac.png';
 
-const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, isSpinning, setIsSpinning }) => {
+const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, isSpinning, setIsSpinning, disabled = false }) => {
   const [rotation, setRotation] = useState(0);
   const wheelRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +46,7 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, isSpinning, setIs
   };
 
   const spin = () => {
-    if (isSpinning) return;
+    if (isSpinning || disabled) return;
     
     setIsSpinning(true);
     
@@ -206,10 +207,10 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, isSpinning, setIs
       {/* Spin Button */}
       <button
         onClick={spin}
-        disabled={isSpinning}
-        className="spin-button animate-pulse-glow text-lg md:text-xl"
+        disabled={isSpinning || disabled}
+        className={`spin-button text-lg md:text-xl ${disabled ? 'opacity-50 cursor-not-allowed' : 'animate-pulse-glow'}`}
       >
-        {isSpinning ? 'SPINNING...' : 'SPIN NOW'}
+        {isSpinning ? 'SPINNING...' : disabled ? 'ALREADY SPUN' : 'SPIN NOW'}
       </button>
     </div>
   );
