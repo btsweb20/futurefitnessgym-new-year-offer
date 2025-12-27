@@ -16,7 +16,7 @@ interface FormData {
   preferredLocation: string;
 }
 
-const WEBHOOK_URL = 'https://n8n.srv1225457.hstgr.cloud/webhook-test/Futurefitnessgym-newyearoffer';
+const WEBHOOK_URL = 'https://n8n.srv1225457.hstgr.cloud/webhook/Futurefitnessgym-newyearoffer';
 
 const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, prize, onClose, onSuccess }) => {
   const [formData, setFormData] = useState<FormData>({
@@ -122,16 +122,6 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, prize, onCl
             exit={{ scale: 0.9, opacity: 0 }}
             className="relative bg-gradient-to-b from-card to-background rounded-2xl p-6 md:p-8 max-w-lg w-full neon-border my-8"
           >
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
             {/* Header */}
             <div className="text-center mb-6">
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
