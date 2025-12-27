@@ -6,6 +6,13 @@ import RegistrationForm from '@/components/RegistrationForm';
 import ShareSection from '@/components/ShareSection';
 import TermsModal from '@/components/TermsModal';
 import CampaignStatus from '@/components/CampaignStatus';
+import { 
+  generateFingerprint, 
+  setCookie, 
+  getCookie, 
+  saveToIndexedDB, 
+  getFromIndexedDB 
+} from '@/lib/fingerprint';
 
 const LOGO_URL = 'https://futurefitnessgymnellore.com/static/media/logo.2f698da7dd4e6a5054ac.png';
 const INSTAGRAM_URL = 'https://www.instagram.com/futurefitnessgym_nellore/';
@@ -16,11 +23,12 @@ const CAMPAIGN_START = new Date('2025-12-25T00:00:00');
 const CAMPAIGN_END = new Date('2025-12-31T23:59:59');
 const CAMPAIGN_EXPIRY = new Date('2026-01-01T00:00:00');
 
-// LocalStorage keys for spin blocking
+// Storage keys for spin blocking
 const SPIN_STORAGE_KEY = 'ffg_spin_completed';
 const SPIN_PRIZE_KEY = 'ffg_won_prize';
 const SPIN_PRIZE_ICON_KEY = 'ffg_won_prize_icon';
 const SPIN_FORM_SUBMITTED_KEY = 'ffg_form_submitted';
+const FINGERPRINT_KEY = 'ffg_device_fp';
 
 type CampaignStatusType = 'upcoming' | 'active' | 'ended';
 
@@ -35,27 +43,49 @@ const Index = () => {
   const [showShare, setShowShare] = useState(false);
   const [wonPrize, setWonPrize] = useState('');
   const [wonPrizeIcon, setWonPrizeIcon] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user has already spun on mount
+  // Check if user has already spun using multiple storage methods
   useEffect(() => {
-    const spinCompleted = localStorage.getItem(SPIN_STORAGE_KEY);
-    const savedPrize = localStorage.getItem(SPIN_PRIZE_KEY);
-    const savedPrizeIcon = localStorage.getItem(SPIN_PRIZE_ICON_KEY);
-    const savedFormSubmitted = localStorage.getItem(SPIN_FORM_SUBMITTED_KEY);
-
-    if (spinCompleted === 'true' && savedPrize) {
-      setHasSpun(true);
-      setWonPrize(savedPrize);
-      setWonPrizeIcon(savedPrizeIcon || '');
+    const checkSpinStatus = async () => {
+      const fingerprint = generateFingerprint();
       
-      if (savedFormSubmitted === 'true') {
-        setFormSubmitted(true);
-        setShowShare(true);
-      } else {
-        // Show the result modal so they can claim
+      // Check all storage methods
+      const localStorageSpin = localStorage.getItem(SPIN_STORAGE_KEY);
+      const cookieSpin = getCookie(SPIN_STORAGE_KEY);
+      const indexedDBSpin = await getFromIndexedDB(`${FINGERPRINT_KEY}_${fingerprint}`);
+      
+      // Get saved prize data from any available source
+      const savedPrize = localStorage.getItem(SPIN_PRIZE_KEY) || getCookie(SPIN_PRIZE_KEY);
+      const savedPrizeIcon = localStorage.getItem(SPIN_PRIZE_ICON_KEY) || getCookie(SPIN_PRIZE_ICON_KEY);
+      const savedFormSubmitted = localStorage.getItem(SPIN_FORM_SUBMITTED_KEY) || getCookie(SPIN_FORM_SUBMITTED_KEY);
+
+      // If any storage method indicates spin completed
+      const hasAlreadySpun = localStorageSpin === 'true' || cookieSpin === 'true' || indexedDBSpin === 'true';
+
+      if (hasAlreadySpun && savedPrize) {
+        setHasSpun(true);
+        setWonPrize(savedPrize);
+        setWonPrizeIcon(savedPrizeIcon || '');
+        
+        if (savedFormSubmitted === 'true') {
+          setFormSubmitted(true);
+          setShowShare(true);
+        } else {
+          // Show the result modal so they can claim
+          setShowResult(true);
+        }
+      } else if (hasAlreadySpun && !savedPrize) {
+        // Edge case: spin recorded but no prize data - still block
+        setHasSpun(true);
+        setWonPrize('Special Offer');
         setShowResult(true);
       }
-    }
+      
+      setIsLoading(false);
+    };
+
+    checkSpinStatus();
   }, []);
 
   // Check campaign status
@@ -130,15 +160,31 @@ const Index = () => {
     playSpinSound();
   };
 
-  const handleSpinComplete = (segment: { label: string; icon: string }, index: number) => {
+  const handleSpinComplete = async (segment: { label: string; icon: string }, index: number) => {
     setWonPrize(segment.label);
     setWonPrizeIcon(segment.icon);
     setHasSpun(true);
     
-    // Save to localStorage to block future spins
+    const fingerprint = generateFingerprint();
+    
+    // Save to ALL storage methods to block future spins
+    // LocalStorage
     localStorage.setItem(SPIN_STORAGE_KEY, 'true');
     localStorage.setItem(SPIN_PRIZE_KEY, segment.label);
     localStorage.setItem(SPIN_PRIZE_ICON_KEY, segment.icon);
+    
+    // Cookies (persist longer, survive some incognito sessions)
+    setCookie(SPIN_STORAGE_KEY, 'true', 365);
+    setCookie(SPIN_PRIZE_KEY, segment.label, 365);
+    setCookie(SPIN_PRIZE_ICON_KEY, segment.icon, 365);
+    
+    // IndexedDB with fingerprint (harder to clear)
+    try {
+      await saveToIndexedDB(`${FINGERPRINT_KEY}_${fingerprint}`, 'true');
+      await saveToIndexedDB(`${SPIN_PRIZE_KEY}_${fingerprint}`, segment.label);
+    } catch (e) {
+      console.log('IndexedDB not available');
+    }
     
     playWinSound();
     setTimeout(() => {
@@ -156,8 +202,9 @@ const Index = () => {
     setFormSubmitted(true);
     setShowShare(true);
     
-    // Save form submission status
+    // Save form submission status to all storage methods
     localStorage.setItem(SPIN_FORM_SUBMITTED_KEY, 'true');
+    setCookie(SPIN_FORM_SUBMITTED_KEY, 'true', 365);
   };
 
   const handleSetIsSpinning = (spinning: boolean) => {
@@ -166,6 +213,15 @@ const Index = () => {
       handleSpinStart();
     }
   };
+
+  // Show loading state while checking spin status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
 
   // Show campaign status screens if not active
   if (campaignStatus !== 'active') {
