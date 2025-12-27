@@ -131,6 +131,15 @@ const Index = () => {
     return <CampaignStatus status={campaignStatus} />;
   }
 
+  // If showing share screen, only show that (no spinner, no header, no footer duplicates)
+  if (showShare) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 md:py-12">
+        <ShareSection isVisible={showShare} prize={wonPrize} prizeIcon={wonPrizeIcon} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-8 md:py-12">
       {/* Header Section */}
@@ -206,9 +215,6 @@ const Index = () => {
           setIsSpinning={handleSetIsSpinning}
         />
       </motion.section>
-
-      {/* Share Section (after form submission) */}
-      <ShareSection isVisible={showShare} prize={wonPrize} prizeIcon={wonPrizeIcon} />
 
       {/* Footer */}
       <motion.footer
