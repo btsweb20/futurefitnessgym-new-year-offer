@@ -33,21 +33,26 @@ Hurry! Limited-time offer 💥`;
     setIsSharing(true);
     
     try {
-      // Try to capture screenshot and share with Web Share API
-      if (captureRef.current && navigator.share && navigator.canShare) {
+      // Capture screenshot
+      if (captureRef.current) {
         const canvas = await html2canvas(captureRef.current, {
           backgroundColor: '#0a0a0a',
           scale: 2,
           useCORS: true,
+          logging: false,
         });
         
-        const blob = await new Promise<Blob>((resolve) => {
-          canvas.toBlob((b) => resolve(b!), 'image/png', 1.0);
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob((b) => {
+            if (b) resolve(b);
+            else reject(new Error('Failed to create blob'));
+          }, 'image/png', 1.0);
         });
         
         const file = new File([blob], 'future-fitness-reward.png', { type: 'image/png' });
         
-        if (navigator.canShare({ files: [file] })) {
+        // Try Web Share API with files (works on mobile)
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             text: shareMessage,
             files: [file],
@@ -55,13 +60,21 @@ Hurry! Limited-time offer 💥`;
           setIsSharing(false);
           return;
         }
+        
+        // Fallback for desktop: Download image and open WhatsApp
+        const downloadLink = document.createElement('a');
+        downloadLink.href = canvas.toDataURL('image/png');
+        downloadLink.download = 'future-fitness-reward.png';
+        downloadLink.click();
+        
+        // Open WhatsApp with message
+        setTimeout(() => {
+          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+          window.open(whatsappUrl, '_blank');
+        }, 500);
       }
-      
-      // Fallback: Open WhatsApp with just the message
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
-      window.open(whatsappUrl, '_blank');
     } catch (error) {
-      // If user cancels or any error, try simple WhatsApp share
+      // Fallback: Open WhatsApp with just the message
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
       window.open(whatsappUrl, '_blank');
     }
