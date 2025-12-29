@@ -17,8 +17,8 @@ const ShareSection: React.FC<ShareSectionProps> = ({ isVisible, prize, prizeIcon
 
   if (!isVisible) return null;
 
-  // Get current page URL for sharing
-  const shareLink = typeof window !== 'undefined' ? window.location.href : 'https://futurefitnessgym-newyearoffer.lovable.app/';
+  // Share link
+  const shareLink = 'https://futurefitnessgym-new-year-offer.lovable.app';
 
   const shareMessage = `🔥 I just won "${prize}" from Future Fitness Gym! 💪
 
