@@ -17,10 +17,10 @@ interface SpinWheelProps {
 }
 
 const segments: Segment[] = [
-  { label: 'JACKPOT – 1 Year FREE', shortLabel: 'JACKPOT\n1 Year FREE', icon: '🎯', color: '#00CED1', weight: 0.5 },
-  { label: '₹4,999 / Year', shortLabel: '₹4,999/Year', icon: '⚡', color: '#FF8C00', weight: 1 },
-  { label: '₹5,999 / Year', shortLabel: '₹5,999/Year', icon: '🔥', color: '#FF6B6B', weight: 2 },
-  { label: '₹6,999 / Year', shortLabel: '₹6,999/Year', icon: '⭐', color: '#FFD700', weight: 96 },
+  { label: 'JACKPOT – 1 Year FREE', shortLabel: 'JACKPOT\n1 Year FREE', icon: '🎯', color: '#00CED1', weight: 0.2 },
+  { label: '₹4,999 / Year', shortLabel: '₹4,999/Year', icon: '⚡', color: '#FF8C00', weight: 0.5 },
+  { label: '₹5,999 / Year', shortLabel: '₹5,999/Year', icon: '🔥', color: '#FF6B6B', weight: 1 },
+  { label: '₹6,999 / Year', shortLabel: '₹6,999/Year', icon: '⭐', color: '#FFD700', weight: 97.8 },
   { label: '₹7,999 / Year', shortLabel: '₹7,999/Year', icon: '💎', color: '#9B59B6', weight: 0.5 },
   { label: 'Bonus – Badminton + 1 Month', shortLabel: 'Badminton +\nFree Shoe', icon: '🏸', color: '#2ECC71', weight: 0 },
 ];
@@ -32,17 +32,31 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, isSpinning, setIs
   const [rotation, setRotation] = useState(0);
   const wheelRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * STRICT WEIGHTED PROBABILITY LOGIC
+   * Distribution over 100 spins:
+   * 🎯 1 Year FREE   → 0.2%  (0.0 - 0.2)
+   * ⚡ ₹4,999/Year   → 0.5%  (0.2 - 0.7)
+   * 🔥 ₹5,999/Year   → 1%    (0.7 - 1.7)
+   * 💎 ₹7,999/Year   → 0.5%  (random insertion)
+   * ⭐ ₹6,999/Year   → 97.8% (1.7 - 100.0)
+   * 🏸 Bonus         → 0%    (never)
+   */
   const getWeightedRandomSegment = (): number => {
-    const totalWeight = segments.reduce((sum, seg) => sum + seg.weight, 0);
-    let random = Math.random() * totalWeight;
-    
-    for (let i = 0; i < segments.length; i++) {
-      random -= segments[i].weight;
-      if (random <= 0) {
-        return i;
-      }
+    // First check for ₹7,999 (0.5% random insertion as per rules)
+    if (Math.random() * 100 < 0.5) {
+      return 4; // 💎 ₹7,999 / Year
     }
-    return 3;
+    
+    // Generate random number 0-100 for range mapping
+    const random = Math.random() * 100;
+    
+    // STRICT RANGE MAPPING - NO ROUNDING, NO ADJUSTMENT
+    if (random < 0.2) return 0;      // 🎯 1 Year FREE (0.0 - 0.2)
+    if (random < 0.7) return 1;      // ⚡ ₹4,999 (0.2 - 0.7)
+    if (random < 1.7) return 2;      // 🔥 ₹5,999 (0.7 - 1.7)
+    return 3;                         // ⭐ ₹6,999 (1.7 - 100.0)
+    // 🏸 Bonus (index 5) is never selected (0%)
   };
 
   const spin = () => {
