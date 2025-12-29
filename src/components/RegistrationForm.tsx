@@ -6,7 +6,7 @@ interface RegistrationFormProps {
   isOpen: boolean;
   prize: string;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (userName: string) => void;
 }
 
 interface FormData {
@@ -89,7 +89,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, prize, onCl
 
       if (response.ok) {
         toast.success('✅ Your entry has been successfully recorded!');
-        onSuccess();
+        onSuccess(formData.fullName.trim());
       } else {
         throw new Error('Submission failed');
       }

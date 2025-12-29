@@ -7,23 +7,25 @@ interface ShareSectionProps {
   isVisible: boolean;
   prize: string;
   prizeIcon: string;
+  userName: string;
 }
 
-const SHARE_LINK = 'https://futurefitnessgym-newyearoffer.lovable.app/';
-
-const ShareSection: React.FC<ShareSectionProps> = ({ isVisible, prize, prizeIcon }) => {
+const ShareSection: React.FC<ShareSectionProps> = ({ isVisible, prize, prizeIcon, userName }) => {
   const [showTerms, setShowTerms] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
 
   if (!isVisible) return null;
 
-  const shareMessage = `🔥 I just won an exciting offer from Future Fitness Gym! 💪
+  // Get current page URL for sharing
+  const shareLink = typeof window !== 'undefined' ? window.location.href : 'https://futurefitnessgym-newyearoffer.lovable.app/';
+
+  const shareMessage = `🔥 I just won "${prize}" from Future Fitness Gym! 💪
 
 You can also try your luck and win amazing gym membership rewards — including a chance to get 1 YEAR FREE membership!
 
 Tap here and spin now 👇
-${SHARE_LINK}
+${shareLink}
 
 Hurry! Limited-time offer 💥`;
 
@@ -100,14 +102,14 @@ Hurry! Limited-time offer 💥`;
           <span className="text-4xl">🎊</span>
         </motion.div>
 
-        {/* Main title */}
+        {/* Main title with user name */}
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="text-3xl md:text-4xl font-bold text-foreground mb-6"
         >
-          You're All Set!
+          {userName ? `${userName} won this!` : "You're All Set!"}
         </motion.h2>
 
         {/* Reward display */}

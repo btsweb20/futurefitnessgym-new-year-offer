@@ -28,6 +28,7 @@ const SPIN_STORAGE_KEY = 'ffg_spin_completed';
 const SPIN_PRIZE_KEY = 'ffg_won_prize';
 const SPIN_PRIZE_ICON_KEY = 'ffg_won_prize_icon';
 const SPIN_FORM_SUBMITTED_KEY = 'ffg_form_submitted';
+const SPIN_USER_NAME_KEY = 'ffg_user_name';
 const FINGERPRINT_KEY = 'ffg_device_fp';
 
 type CampaignStatusType = 'upcoming' | 'active' | 'ended';
@@ -43,6 +44,7 @@ const Index = () => {
   const [showShare, setShowShare] = useState(false);
   const [wonPrize, setWonPrize] = useState('');
   const [wonPrizeIcon, setWonPrizeIcon] = useState('');
+  const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   // Check if user has already spun using multiple storage methods
@@ -59,6 +61,7 @@ const Index = () => {
       const savedPrize = localStorage.getItem(SPIN_PRIZE_KEY) || getCookie(SPIN_PRIZE_KEY);
       const savedPrizeIcon = localStorage.getItem(SPIN_PRIZE_ICON_KEY) || getCookie(SPIN_PRIZE_ICON_KEY);
       const savedFormSubmitted = localStorage.getItem(SPIN_FORM_SUBMITTED_KEY) || getCookie(SPIN_FORM_SUBMITTED_KEY);
+      const savedUserName = localStorage.getItem(SPIN_USER_NAME_KEY) || getCookie(SPIN_USER_NAME_KEY);
 
       // If any storage method indicates spin completed
       const hasAlreadySpun = localStorageSpin === 'true' || cookieSpin === 'true' || indexedDBSpin === 'true';
@@ -67,6 +70,7 @@ const Index = () => {
         setHasSpun(true);
         setWonPrize(savedPrize);
         setWonPrizeIcon(savedPrizeIcon || '');
+        setUserName(savedUserName || '');
         
         if (savedFormSubmitted === 'true') {
           setFormSubmitted(true);
@@ -197,14 +201,17 @@ const Index = () => {
     setShowForm(true);
   };
 
-  const handleFormSuccess = () => {
+  const handleFormSuccess = (submittedName: string) => {
     setShowForm(false);
     setFormSubmitted(true);
     setShowShare(true);
+    setUserName(submittedName);
     
-    // Save form submission status to all storage methods
+    // Save form submission status and user name to all storage methods
     localStorage.setItem(SPIN_FORM_SUBMITTED_KEY, 'true');
+    localStorage.setItem(SPIN_USER_NAME_KEY, submittedName);
     setCookie(SPIN_FORM_SUBMITTED_KEY, 'true', 365);
+    setCookie(SPIN_USER_NAME_KEY, submittedName, 365);
   };
 
   const handleSetIsSpinning = (spinning: boolean) => {
@@ -232,7 +239,7 @@ const Index = () => {
   if (showShare) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 md:py-12">
-        <ShareSection isVisible={showShare} prize={wonPrize} prizeIcon={wonPrizeIcon} />
+        <ShareSection isVisible={showShare} prize={wonPrize} prizeIcon={wonPrizeIcon} userName={userName} />
       </div>
     );
   }
