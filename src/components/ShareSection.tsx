@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import TermsModal from './TermsModal';
 
