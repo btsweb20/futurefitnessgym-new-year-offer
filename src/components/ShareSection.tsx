@@ -20,53 +20,12 @@ const ShareSection: React.FC<ShareSectionProps> = ({ isVisible, prize, prizeIcon
   if (!isVisible) return null;
 
   const shareLink = 'https://futurefitnessgym-new-year-offer.lovable.app/';
+  const qrImageUrl =
+  "https://blogger.googleusercontent.com/img/a/AVvXsEh2Dmygo5Wu7XBcXP_pKX4Kpt6hQwK5r3Yuc3yKsKH0I7AhHBQUYkq6XknXBIRgT6QFom4s4nJ7SLOIV5d1ffDAScliTD8Xjl-x7QUAa-HA3RY2OjUI41qjyuRS9F16a1828YX00_KR3QMEVbUnD6G5Cv5nlqBsAFrt9mEsNxbOUQxC0VHlwym4HysNJe2e";
+
 
   // Generate QR code as inline SVG for the share link
-  const generateQRCode = () => {
-    const qrSize = 100;
-    const moduleCount = 21;
-    const moduleSize = qrSize / moduleCount;
-    
-    // QR pattern for visual representation
-   const pattern = [
-  [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
-  [1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,0,0,0,0,0,1],
-  [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],
-  [1,0,1,1,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1],
-  [1,0,1,1,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1,0,1],
-  [1,0,0,0,0,0,1,0,0,1,1,0,1,0,1,0,0,0,0,0,1],
-  [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
-
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-
-  [1,0,1,1,0,1,1,1,0,0,0,0,0,0,1,1,0,1,1,0,1],
-  [0,1,0,1,1,0,0,1,1,0,0,0,0,0,1,0,1,0,0,1,0],
-  [1,0,1,0,1,1,1,0,1,1,0,0,0,0,1,1,0,1,0,1,1],
-  [0,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,1,0],
-  [1,0,0,1,1,0,1,0,1,0,0,0,0,0,1,1,1,0,0,1,1],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-
-  [1,1,1,1,1,1,1,0,0,1,0,0,1,0,1,0,0,1,1,0,1],
-  [1,0,0,0,0,0,1,0,1,1,1,0,0,1,0,1,1,0,1,1,0],
-  [1,0,1,1,1,0,1,0,1,0,1,1,0,1,1,0,1,0,0,0,1],
-  [1,0,1,1,1,0,1,0,0,1,0,1,1,0,0,1,0,1,1,0,0],
-  [1,0,1,1,1,0,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1],
-  [1,0,0,0,0,0,1,0,0,1,1,1,0,1,0,1,0,1,0,0,1],
-  [1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,0,1,1,1,0,1],
-];
-
-    
-    let paths = '';
-    for (let row = 0; row < moduleCount; row++) {
-      for (let col = 0; col < moduleCount; col++) {
-        if (pattern[row][col] === 1) {
-          paths += `<rect x="${col * moduleSize}" y="${row * moduleSize}" width="${moduleSize}" height="${moduleSize}" fill="white"/>`;
-        }
-      }
-    }
-    
-    return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${qrSize}" height="${qrSize}" viewBox="0 0 ${qrSize} ${qrSize}"><rect width="100%" height="100%" fill="#1a1a1a"/>${paths}</svg>`)}`;
-  };
+ 
 
   const handleWhatsAppShare = async () => {
     if (!logoLoaded) {
@@ -221,11 +180,18 @@ const ShareSection: React.FC<ShareSectionProps> = ({ isVisible, prize, prizeIcon
 
         {/* QR Code - VISIBLE IN SCREENSHOT */}
         <div className="flex flex-col items-center mb-4">
-          <img 
-            src={generateQRCode()} 
-            alt="Scan to visit" 
-            className="w-20 h-20 rounded"
-          />
+          {/* QR Code - REAL WORKING QR */}
+<div className="flex flex-col items-center mb-4">
+  <img
+    src={qrImageUrl}
+    alt="Scan to visit Future Fitness Gym"
+    className="w-28 h-28 rounded-lg bg-white p-1 shadow-md"
+  />
+  <p className="text-xs text-muted-foreground mt-1">
+    Scan to visit the offer page
+  </p>
+</div>
+
           <p className="text-xs text-muted-foreground mt-1">
             Scan to visit
           </p>
