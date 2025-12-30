@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import TermsModal from './TermsModal';
-import GymLogo from './GymLogo';
+import gymLogo from '@/assets/gym-logo.png';
 
 interface ShareSectionProps {
   isVisible: boolean;
@@ -14,6 +14,7 @@ interface ShareSectionProps {
 const ShareSection: React.FC<ShareSectionProps> = ({ isVisible, prize, prizeIcon, userName }) => {
   const [showTerms, setShowTerms] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [logoLoaded, setLogoLoaded] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
 
   if (!isVisible) return null;
@@ -31,23 +32,28 @@ ${shareLink}
 Hurry! Limited-time offer 💥`;
 
   const handleWhatsAppShare = async () => {
+    if (!logoLoaded) {
+      // Wait for logo if not loaded
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
     setIsSharing(true);
     
     try {
-      // Wait for logo to be fully rendered
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Wait for DOM to fully render
+      await new Promise(resolve => setTimeout(resolve, 400));
       
-      // Capture screenshot
       if (captureRef.current) {
+        // Capture screenshot with proper settings
         const canvas = await html2canvas(captureRef.current, {
           backgroundColor: '#0a0a0a',
           scale: 2,
           useCORS: true,
           logging: false,
-          allowTaint: false,
-          foreignObjectRendering: false,
+          allowTaint: true,
         });
         
+        // Convert canvas to blob
         const blob = await new Promise<Blob>((resolve, reject) => {
           canvas.toBlob((b) => {
             if (b) resolve(b);
@@ -55,25 +61,25 @@ Hurry! Limited-time offer 💥`;
           }, 'image/png', 1.0);
         });
         
-        const file = new File([blob], 'future-fitness-reward.png', { type: 'image/png' });
+        // Create file from blob
+        const file = new File([blob], 'reward.png', { type: 'image/png' });
         
         // Check if Web Share API supports files
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({
-              title: 'Future Fitness Gym Offer',
-              text: shareMessage,
               files: [file],
+              text: shareMessage,
+              url: shareLink,
             });
             setIsSharing(false);
             return;
           } catch (shareError) {
-            // User cancelled or share failed, try fallback
-            console.log('Share cancelled or failed, trying fallback');
+            // User cancelled or share failed, continue to fallback
           }
         }
         
-        // Fallback: Download image first, then open WhatsApp with text
+        // Fallback for desktop: Download image + open WhatsApp
         const downloadLink = document.createElement('a');
         downloadLink.href = canvas.toDataURL('image/png');
         downloadLink.download = 'future-fitness-reward.png';
@@ -81,20 +87,19 @@ Hurry! Limited-time offer 💥`;
         downloadLink.click();
         document.body.removeChild(downloadLink);
         
-        // Open WhatsApp with message after short delay
         setTimeout(() => {
           const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage)}`;
           window.open(whatsappUrl, '_blank');
-        }, 800);
+        }, 500);
         
         setIsSharing(false);
         return;
       }
     } catch (error) {
-      console.error('Screenshot failed:', error);
+      // Silent fallback
     }
     
-    // Final fallback: Just open WhatsApp with text and link
+    // Final fallback: Just share text + link
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage)}`;
     window.open(whatsappUrl, '_blank');
     setIsSharing(false);
@@ -125,7 +130,13 @@ Hurry! Limited-time offer 💥`;
       <div ref={captureRef} className="relative z-10 bg-background rounded-2xl p-6 border border-primary/20">
         {/* Future Fitness Gym Logo */}
         <div className="flex justify-center mb-4">
-          <GymLogo />
+          <img 
+            src={gymLogo} 
+            alt="Future Fitness Gym" 
+            className="h-24 w-auto object-contain"
+            onLoad={() => setLogoLoaded(true)}
+            crossOrigin="anonymous"
+          />
         </div>
 
         {/* Celebration icon */}
