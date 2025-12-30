@@ -20,11 +20,11 @@ const ShareSection: React.FC<ShareSectionProps> = ({ isVisible, prize, prizeIcon
   // Share link
   const shareLink = 'https://futurefitnessgym-new-year-offer.lovable.app';
 
-  const shareMessage = `🔥 I just won "${prize}" from Future Fitness Gym! 💪
+  const shareMessage = `🔥 I just won an exciting offer from Future Fitness Gym! 💪
 
-You can also try your luck and win amazing gym membership rewards — including a chance to get 1 YEAR FREE membership!
+You can also try your luck and win amazing gym membership rewards — including a chance to get a FREE 1 YEAR MEMBERSHIP!
 
-Tap here and spin now 👇
+Tap here to try your luck 👇
 ${shareLink}
 
 Hurry! Limited-time offer 💥`;
@@ -33,6 +33,9 @@ Hurry! Limited-time offer 💥`;
     setIsSharing(true);
     
     try {
+      // Wait a moment to ensure logo is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Capture screenshot
       if (captureRef.current) {
         const canvas = await html2canvas(captureRef.current, {
@@ -40,6 +43,7 @@ Hurry! Limited-time offer 💥`;
           scale: 2,
           useCORS: true,
           logging: false,
+          allowTaint: true,
         });
         
         const blob = await new Promise<Blob>((resolve, reject) => {
@@ -74,7 +78,7 @@ Hurry! Limited-time offer 💥`;
         }, 500);
       }
     } catch (error) {
-      // Fallback: Open WhatsApp with just the message
+      // Fallback: Open WhatsApp with just the message and link
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
       window.open(whatsappUrl, '_blank');
     }
@@ -103,39 +107,66 @@ Hurry! Limited-time offer 💥`;
         ))}
       </div>
 
-      {/* Capturable content for screenshot */}
+      {/* Capturable content for screenshot - includes logo */}
       <div ref={captureRef} className="relative z-10 bg-background rounded-2xl p-6">
+        {/* Future Fitness Gym Logo */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="flex justify-center mb-4"
+        >
+          <img 
+            src="https://futurefitnessgymnellore.com/wp-content/uploads/2024/02/20231022_233446_0000.png" 
+            alt="Future Fitness Gym Logo" 
+            className="h-20 w-auto object-contain"
+            crossOrigin="anonymous"
+          />
+        </motion.div>
+
         {/* Celebration icon */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', damping: 10, delay: 0.2 }}
-          className="w-20 h-20 mx-auto mb-6 bg-primary/20 rounded-full flex items-center justify-center"
+          className="w-16 h-16 mx-auto mb-4 bg-primary/20 rounded-full flex items-center justify-center"
         >
-          <span className="text-4xl">🎊</span>
+          <span className="text-3xl">🎊</span>
         </motion.div>
 
-        {/* Main title with user name */}
+        {/* Congratulations title */}
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-3xl md:text-4xl font-bold text-foreground mb-6"
+          className="text-2xl md:text-3xl font-bold text-foreground mb-2"
         >
-          {userName ? `${userName} won this!` : "You're All Set!"}
+          Congratulations!
         </motion.h2>
+
+        {/* User name display */}
+        {userName && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            className="text-lg text-primary font-semibold mb-4"
+          >
+            {userName} won this offer!
+          </motion.p>
+        )}
 
         {/* Reward display */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4 }}
-          className="bg-primary/10 border-2 border-primary rounded-xl p-6 mb-6"
+          className="bg-primary/10 border-2 border-primary rounded-xl p-5 mb-5"
         >
-          <p className="text-muted-foreground text-lg mb-2">Your Reward</p>
+          <p className="text-muted-foreground text-sm mb-2">Your Reward</p>
           <div className="flex items-center justify-center gap-3">
             <span className="text-3xl">{prizeIcon}</span>
-            <span className="text-2xl md:text-3xl font-bold text-primary">{prize}</span>
+            <span className="text-xl md:text-2xl font-bold text-primary">{prize}</span>
           </div>
         </motion.div>
 
@@ -144,17 +175,12 @@ Hurry! Limited-time offer 💥`;
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="text-muted-foreground mb-2"
+          className="text-muted-foreground text-sm mb-2"
         >
           Visit{' '}
-          <a
-            href="https://futurefitnessgymnellore.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary font-semibold hover:underline"
-          >
+          <span className="text-primary font-semibold">
             Future Fitness Gym
-          </a>{' '}
+          </span>{' '}
           to claim your membership!
         </motion.p>
 
@@ -163,7 +189,7 @@ Hurry! Limited-time offer 💥`;
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.55 }}
-          className="text-muted-foreground text-sm mb-6"
+          className="text-muted-foreground text-xs"
         >
           You will receive an email shortly.
         </motion.p>
@@ -174,21 +200,16 @@ Hurry! Limited-time offer 💥`;
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="relative z-10 mt-8 bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 rounded-2xl p-6"
+        className="relative z-10 mt-6 bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 rounded-2xl p-6"
       >
         {/* Share title */}
-        <h3 className="text-2xl font-bold text-foreground mb-2">
+        <h3 className="text-xl font-bold text-foreground mb-2">
           Share this with your friends!
         </h3>
         
-        {/* Subtitle */}
-        <p className="text-primary font-medium mb-3">
-          Give your friends a chance to win exciting gym membership offers too.
-        </p>
-        
         {/* Description */}
-        <p className="text-muted-foreground text-sm mb-6">
-          Your friends can also spin and win exciting rewards — including a chance to get a FREE 1-Year Gym Membership.
+        <p className="text-muted-foreground text-sm mb-5">
+          Your friends can also spin and win exciting gym membership offers — including a chance to get a FREE 1-Year Membership.
         </p>
 
         {/* WhatsApp share button */}
@@ -221,7 +242,7 @@ Hurry! Limited-time offer 💥`;
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.7 }}
-        className="relative z-10 mt-8"
+        className="relative z-10 mt-6"
       >
         <button
           onClick={() => setShowTerms(true)}
