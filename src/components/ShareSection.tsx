@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import TermsModal from './TermsModal';
+import GymLogo from './GymLogo';
 
 interface ShareSectionProps {
   isVisible: boolean;
@@ -33,8 +34,8 @@ Hurry! Limited-time offer 💥`;
     setIsSharing(true);
     
     try {
-      // Wait a moment to ensure logo is fully rendered
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for logo to be fully rendered
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // Capture screenshot
       if (captureRef.current) {
@@ -43,7 +44,8 @@ Hurry! Limited-time offer 💥`;
           scale: 2,
           useCORS: true,
           logging: false,
-          allowTaint: true,
+          allowTaint: false,
+          foreignObjectRendering: false,
         });
         
         const blob = await new Promise<Blob>((resolve, reject) => {
@@ -55,34 +57,46 @@ Hurry! Limited-time offer 💥`;
         
         const file = new File([blob], 'future-fitness-reward.png', { type: 'image/png' });
         
-        // Try Web Share API with files (works on mobile)
+        // Check if Web Share API supports files
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            text: shareMessage,
-            files: [file],
-          });
-          setIsSharing(false);
-          return;
+          try {
+            await navigator.share({
+              title: 'Future Fitness Gym Offer',
+              text: shareMessage,
+              files: [file],
+            });
+            setIsSharing(false);
+            return;
+          } catch (shareError) {
+            // User cancelled or share failed, try fallback
+            console.log('Share cancelled or failed, trying fallback');
+          }
         }
         
-        // Fallback for desktop: Download image and open WhatsApp
+        // Fallback: Download image first, then open WhatsApp with text
         const downloadLink = document.createElement('a');
         downloadLink.href = canvas.toDataURL('image/png');
         downloadLink.download = 'future-fitness-reward.png';
+        document.body.appendChild(downloadLink);
         downloadLink.click();
+        document.body.removeChild(downloadLink);
         
-        // Open WhatsApp with message
+        // Open WhatsApp with message after short delay
         setTimeout(() => {
-          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+          const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage)}`;
           window.open(whatsappUrl, '_blank');
-        }, 500);
+        }, 800);
+        
+        setIsSharing(false);
+        return;
       }
     } catch (error) {
-      // Fallback: Open WhatsApp with just the message and link
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
-      window.open(whatsappUrl, '_blank');
+      console.error('Screenshot failed:', error);
     }
     
+    // Final fallback: Just open WhatsApp with text and link
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage)}`;
+    window.open(whatsappUrl, '_blank');
     setIsSharing(false);
   };
 
@@ -108,91 +122,51 @@ Hurry! Limited-time offer 💥`;
       </div>
 
       {/* Capturable content for screenshot - includes logo */}
-      <div ref={captureRef} className="relative z-10 bg-background rounded-2xl p-6">
+      <div ref={captureRef} className="relative z-10 bg-background rounded-2xl p-6 border border-primary/20">
         {/* Future Fitness Gym Logo */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className="flex justify-center mb-4"
-        >
-          <img 
-            src="https://futurefitnessgymnellore.com/wp-content/uploads/2024/02/20231022_233446_0000.png" 
-            alt="Future Fitness Gym Logo" 
-            className="h-20 w-auto object-contain"
-            crossOrigin="anonymous"
-          />
-        </motion.div>
+        <div className="flex justify-center mb-4">
+          <GymLogo />
+        </div>
 
         {/* Celebration icon */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', damping: 10, delay: 0.2 }}
-          className="w-16 h-16 mx-auto mb-4 bg-primary/20 rounded-full flex items-center justify-center"
-        >
+        <div className="w-16 h-16 mx-auto mb-4 bg-primary/20 rounded-full flex items-center justify-center">
           <span className="text-3xl">🎊</span>
-        </motion.div>
+        </div>
 
         {/* Congratulations title */}
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-2xl md:text-3xl font-bold text-foreground mb-2"
-        >
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
           Congratulations!
-        </motion.h2>
+        </h2>
 
         {/* User name display */}
         {userName && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.35 }}
-            className="text-lg text-primary font-semibold mb-4"
-          >
+          <p className="text-lg text-primary font-semibold mb-4">
             {userName} won this offer!
-          </motion.p>
+          </p>
         )}
 
         {/* Reward display */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4 }}
-          className="bg-primary/10 border-2 border-primary rounded-xl p-5 mb-5"
-        >
+        <div className="bg-primary/10 border-2 border-primary rounded-xl p-5 mb-5">
           <p className="text-muted-foreground text-sm mb-2">Your Reward</p>
           <div className="flex items-center justify-center gap-3">
             <span className="text-3xl">{prizeIcon}</span>
             <span className="text-xl md:text-2xl font-bold text-primary">{prize}</span>
           </div>
-        </motion.div>
+        </div>
 
         {/* Visit message */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-muted-foreground text-sm mb-2"
-        >
+        <p className="text-muted-foreground text-sm mb-2">
           Visit{' '}
           <span className="text-primary font-semibold">
             Future Fitness Gym
           </span>{' '}
           to claim your membership!
-        </motion.p>
+        </p>
 
         {/* Email confirmation message */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.55 }}
-          className="text-muted-foreground text-xs"
-        >
+        <p className="text-muted-foreground text-xs">
           You will receive an email shortly.
-        </motion.p>
+        </p>
       </div>
 
       {/* Share section - outside capture area */}
