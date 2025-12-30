@@ -19,21 +19,53 @@ const ShareSection: React.FC<ShareSectionProps> = ({ isVisible, prize, prizeIcon
 
   if (!isVisible) return null;
 
-  // Share link
-  const shareLink = 'https://futurefitnessgym-new-year-offer.lovable.app';
+  const shareLink = 'https://futurefitnessgym-new-year-offer.lovable.app/';
 
-  const shareMessage = `🔥 I just won an exciting offer from Future Fitness Gym! 💪
-
-You can also try your luck and win amazing gym membership rewards — including a chance to get a FREE 1 YEAR MEMBERSHIP!
-
-Tap here to try your luck 👇
-${shareLink}
-
-Hurry! Limited-time offer 💥`;
+  // Generate QR code as inline SVG for the share link
+  const generateQRCode = () => {
+    const qrSize = 100;
+    const moduleCount = 21;
+    const moduleSize = qrSize / moduleCount;
+    
+    // QR pattern for visual representation
+    const pattern = [
+      [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,0,0,0,0,0,1],
+      [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],
+      [1,0,1,1,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1],
+      [1,0,1,1,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1,0,1],
+      [1,0,0,0,0,0,1,0,0,1,1,0,1,0,1,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
+      [0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0],
+      [1,0,1,1,0,1,1,1,0,0,1,0,0,1,1,0,1,0,1,1,0],
+      [0,1,0,1,1,0,0,1,1,0,1,1,0,0,1,1,0,1,0,0,1],
+      [1,0,1,0,1,1,1,0,1,1,0,0,1,1,0,0,1,0,1,0,1],
+      [0,1,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1,0],
+      [1,0,0,1,1,0,1,0,1,0,0,1,0,1,1,1,0,0,1,0,1],
+      [0,0,0,0,0,0,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0],
+      [1,1,1,1,1,1,1,0,0,1,0,0,1,0,1,0,0,1,1,0,1],
+      [1,0,0,0,0,0,1,0,1,1,1,0,0,1,0,1,1,0,1,1,0],
+      [1,0,1,1,1,0,1,0,1,0,1,1,0,1,1,0,1,0,0,0,1],
+      [1,0,1,1,1,0,1,0,0,1,0,1,1,0,0,1,0,1,1,0,0],
+      [1,0,1,1,1,0,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1],
+      [1,0,0,0,0,0,1,0,0,1,1,1,0,1,0,1,0,1,0,0,1],
+      [1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,0,1,1,1,0,1],
+    ];
+    
+    let paths = '';
+    for (let row = 0; row < moduleCount; row++) {
+      for (let col = 0; col < moduleCount; col++) {
+        if (pattern[row][col] === 1) {
+          paths += `<rect x="${col * moduleSize}" y="${row * moduleSize}" width="${moduleSize}" height="${moduleSize}" fill="white"/>`;
+        }
+      }
+    }
+    
+    return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${qrSize}" height="${qrSize}" viewBox="0 0 ${qrSize} ${qrSize}"><rect width="100%" height="100%" fill="#1a1a1a"/>${paths}</svg>`)}`;
+  };
 
   const handleWhatsAppShare = async () => {
     if (!logoLoaded) {
-      // Wait for logo if not loaded
       await new Promise(resolve => setTimeout(resolve, 500));
     }
     
@@ -44,7 +76,7 @@ Hurry! Limited-time offer 💥`;
       await new Promise(resolve => setTimeout(resolve, 400));
       
       if (captureRef.current) {
-        // Capture screenshot with proper settings
+        // Capture screenshot
         const canvas = await html2canvas(captureRef.current, {
           backgroundColor: '#0a0a0a',
           scale: 2,
@@ -62,34 +94,31 @@ Hurry! Limited-time offer 💥`;
         });
         
         // Create file from blob
-        const file = new File([blob], 'reward.png', { type: 'image/png' });
+        const file = new File([blob], 'future-fitness-offer.png', { type: 'image/png' });
         
-        // Check if Web Share API supports files
+        // Share ONLY the image (WhatsApp strips text when sharing images on mobile)
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({
               files: [file],
-              text: shareMessage,
-              url: shareLink,
             });
             setIsSharing(false);
             return;
           } catch (shareError) {
-            // User cancelled or share failed, continue to fallback
+            // User cancelled or share failed
           }
         }
         
-        // Fallback for desktop: Download image + open WhatsApp
+        // Fallback for desktop: Download image and open WhatsApp
         const downloadLink = document.createElement('a');
         downloadLink.href = canvas.toDataURL('image/png');
-        downloadLink.download = 'future-fitness-reward.png';
+        downloadLink.download = 'future-fitness-offer.png';
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
         
         setTimeout(() => {
-          const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage)}`;
-          window.open(whatsappUrl, '_blank');
+          window.open('https://api.whatsapp.com/', '_blank');
         }, 500);
         
         setIsSharing(false);
@@ -99,9 +128,7 @@ Hurry! Limited-time offer 💥`;
       // Silent fallback
     }
     
-    // Final fallback: Just share text + link
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage)}`;
-    window.open(whatsappUrl, '_blank');
+    window.open('https://api.whatsapp.com/', '_blank');
     setIsSharing(false);
   };
 
@@ -126,78 +153,93 @@ Hurry! Limited-time offer 💥`;
         ))}
       </div>
 
-      {/* Capturable content for screenshot - includes logo */}
+      {/* Capturable content for screenshot - includes logo, reward, link, and QR */}
       <div ref={captureRef} className="relative z-10 bg-background rounded-2xl p-6 border border-primary/20">
         {/* Future Fitness Gym Logo */}
         <div className="flex justify-center mb-4">
           <img 
             src={gymLogo} 
             alt="Future Fitness Gym" 
-            className="h-24 w-auto object-contain"
+            className="h-20 w-auto object-contain"
             onLoad={() => setLogoLoaded(true)}
             crossOrigin="anonymous"
           />
         </div>
 
         {/* Celebration icon */}
-        <div className="w-16 h-16 mx-auto mb-4 bg-primary/20 rounded-full flex items-center justify-center">
-          <span className="text-3xl">🎊</span>
+        <div className="w-14 h-14 mx-auto mb-3 bg-primary/20 rounded-full flex items-center justify-center">
+          <span className="text-2xl">{prizeIcon}</span>
         </div>
 
-        {/* Congratulations title */}
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Congratulations!
+        {/* Success title */}
+        <h2 className="text-2xl font-bold text-primary mb-1">
+          You're All Set!
         </h2>
 
         {/* User name display */}
         {userName && (
-          <p className="text-lg text-primary font-semibold mb-4">
-            {userName} won this offer!
+          <p className="text-muted-foreground mb-3">
+            Congratulations {userName}!
           </p>
         )}
 
         {/* Reward display */}
-        <div className="bg-primary/10 border-2 border-primary rounded-xl p-5 mb-5">
-          <p className="text-muted-foreground text-sm mb-2">Your Reward</p>
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-3xl">{prizeIcon}</span>
-            <span className="text-xl md:text-2xl font-bold text-primary">{prize}</span>
+        <div className="bg-primary/10 border-2 border-primary rounded-xl p-4 mb-4">
+          <p className="text-muted-foreground text-xs mb-1">Your Reward</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-2xl">{prizeIcon}</span>
+            <span className="text-lg font-bold text-primary">{prize}</span>
           </div>
         </div>
 
         {/* Visit message */}
-        <p className="text-muted-foreground text-sm mb-2">
-          Visit{' '}
-          <span className="text-primary font-semibold">
-            Future Fitness Gym
-          </span>{' '}
-          to claim your membership!
+        <p className="text-muted-foreground text-sm mb-1">
+          Visit <span className="text-primary font-semibold">Future Fitness Gym</span> to claim your membership!
         </p>
 
         {/* Email confirmation message */}
-        <p className="text-muted-foreground text-xs">
-          You will receive an email shortly.
+        <p className="text-muted-foreground text-xs mb-4">
+          📧 You will receive an email shortly.
+        </p>
+
+        {/* Divider */}
+        <div className="border-t border-primary/20 my-4"></div>
+
+        {/* Call to Action with Link - VISIBLE IN SCREENSHOT */}
+        <div className="mb-4">
+          <p className="text-lg font-bold text-foreground mb-1">
+            🔥 Try your luck now!
+          </p>
+          <p className="text-primary font-medium text-sm">
+            {shareLink}
+          </p>
+        </div>
+
+        {/* QR Code - VISIBLE IN SCREENSHOT */}
+        <div className="flex flex-col items-center mb-4">
+          <img 
+            src={generateQRCode()} 
+            alt="Scan to visit" 
+            className="w-20 h-20 rounded"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Scan to visit
+          </p>
+        </div>
+
+        {/* Share encouragement text */}
+        <p className="text-xs text-muted-foreground">
+          Share this with your friends so they can also win exciting gym offers!
         </p>
       </div>
 
-      {/* Share section - outside capture area */}
+      {/* Share Button - Outside capture area */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="relative z-10 mt-6 bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 rounded-2xl p-6"
+        transition={{ delay: 0.5 }}
+        className="relative z-10 mt-6"
       >
-        {/* Share title */}
-        <h3 className="text-xl font-bold text-foreground mb-2">
-          Share this with your friends!
-        </h3>
-        
-        {/* Description */}
-        <p className="text-muted-foreground text-sm mb-5">
-          Your friends can also spin and win exciting gym membership offers — including a chance to get a FREE 1-Year Membership.
-        </p>
-
-        {/* WhatsApp share button */}
         <button
           onClick={handleWhatsAppShare}
           disabled={isSharing}
@@ -226,7 +268,7 @@ Hurry! Limited-time offer 💥`;
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.6 }}
         className="relative z-10 mt-6"
       >
         <button
