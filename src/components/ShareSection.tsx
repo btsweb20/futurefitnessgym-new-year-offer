@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import TermsModal from './TermsModal';
 import gymLogo from '@/assets/gym-logo.png';
+import qrCode from '@/assets/qr-code.png';
 
 interface ShareSectionProps {
   isVisible: boolean;
@@ -20,33 +21,12 @@ const ShareSection: React.FC<ShareSectionProps> = ({
   const [showTerms, setShowTerms] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [logoLoaded, setLogoLoaded] = useState(false);
-  const [qrBase64, setQrBase64] = useState<string | null>(null);
 
   const captureRef = useRef<HTMLDivElement>(null);
 
   if (!isVisible) return null;
 
   const shareLink = 'https://futurefitnessgym-new-year-offer.lovable.app/';
-
-  // Load QR image and convert to base64 (fixes screenshot issue)
-  useEffect(() => {
-    const loadQrAsBase64 = async () => {
-      const response = await fetch(
-        'https://blogger.googleusercontent.com/img/a/AVvXsEh2Dmygo5Wu7XBcXP_pKX4Kpt6hQwK5r3Yuc3yKsKH0I7AhHBQUYkq6XknXBIRgT6QFom4s4nJ7SLOIV5d1ffDAScliTD8Xjl-x7QUAa-HA3RY2OjUI41qjyuRS9F16a1828YX00_KR3QMEVbUnD6G5Cv5nlqBsAFrt9mEsNxbOUQxC0VHlwym4HysNJe2e'
-      );
-
-      const blob = await response.blob();
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        setQrBase64(reader.result as string);
-      };
-
-      reader.readAsDataURL(blob);
-    };
-
-    loadQrAsBase64();
-  }, []);
 
   const handleWhatsAppShare = async () => {
     if (!logoLoaded) await new Promise(r => setTimeout(r, 500));
@@ -149,18 +129,16 @@ const ShareSection: React.FC<ShareSectionProps> = ({
           <p className="text-primary font-medium text-sm">{shareLink}</p>
         </div>
 
-        {qrBase64 && (
-          <div className="flex flex-col items-center mb-4">
-            <img
-              src={qrBase64}
-              alt="Scan to visit"
-              className="w-28 h-28 rounded-lg bg-white p-1 shadow-md"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Scan to visit the offer page
-            </p>
-          </div>
-        )}
+        <div className="flex flex-col items-center mb-4">
+          <img
+            src={qrCode}
+            alt="Scan to visit"
+            className="w-32 h-32 rounded-lg bg-white p-2 shadow-md"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Scan to visit the offer page
+          </p>
+        </div>
 
         <p className="text-xs text-muted-foreground">
           Share this with your friends so they can also win exciting gym offers!
