@@ -120,11 +120,19 @@ export const useSourceProtection = () => {
     `;
     document.head.appendChild(style);
 
-    // DevTools detection (soft mode)
+    // DevTools detection (soft mode) - DISABLED in development/preview
+    // Only enable on production domain to avoid false positives in Lovable preview
+    const isProduction = window.location.hostname.includes('futurefitnessgym') || 
+                         (!window.location.hostname.includes('lovableproject.com') && 
+                          !window.location.hostname.includes('localhost'));
+    
     let devToolsOpen = false;
-    const threshold = 160;
+    const threshold = 200; // Increased threshold to reduce false positives
     
     const checkDevTools = () => {
+      // Skip detection if not on production
+      if (!isProduction) return;
+      
       const widthThreshold = window.outerWidth - window.innerWidth > threshold;
       const heightThreshold = window.outerHeight - window.innerHeight > threshold;
       
