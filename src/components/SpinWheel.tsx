@@ -17,10 +17,10 @@ interface SpinWheelProps {
 }
 
 const segments: Segment[] = [
-  { label: 'JACKPOT – 1 Year FREE', shortLabel: 'JACKPOT\n1 Year FREE', icon: '🎯', color: '#00CED1', weight: 0.2 },
+  { label: 'JACKPOT – 1 Year FREE', shortLabel: 'JACKPOT\n1 Year FREE', icon: '🎯', color: '#00CED1', weight: 0 },
   { label: '₹4,999 / Year', shortLabel: '₹4,999/Year', icon: '⚡', color: '#FF8C00', weight: 0.5 },
   { label: '₹5,999 / Year', shortLabel: '₹5,999/Year', icon: '🔥', color: '#FF6B6B', weight: 1 },
-  { label: '₹6,999 / Year', shortLabel: '₹6,999/Year', icon: '⭐', color: '#FFD700', weight: 97.8 },
+  { label: '₹6,999 / Year', shortLabel: '₹6,999/Year', icon: '⭐', color: '#FFD700', weight: 98.3 },
   { label: '₹7,999 / Year', shortLabel: '₹7,999/Year', icon: '💎', color: '#9B59B6', weight: 0.5 },
   { label: 'Bonus – Badminton + 1 Month', shortLabel: 'Badminton +\nFree Shoe', icon: '🏸', color: '#2ECC71', weight: 0 },
 ];
@@ -33,30 +33,29 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, isSpinning, setIs
   const wheelRef = useRef<HTMLDivElement>(null);
 
   /**
-   * STRICT WEIGHTED PROBABILITY LOGIC
-   * Distribution over 100 spins:
-   * 🎯 1 Year FREE   → 0.2%  (0.0 - 0.2)
-   * ⚡ ₹4,999/Year   → 0.5%  (0.2 - 0.7)
-   * 🔥 ₹5,999/Year   → 1%    (0.7 - 1.7)
-   * 💎 ₹7,999/Year   → 0.5%  (random insertion)
-   * ⭐ ₹6,999/Year   → 97.8% (1.7 - 100.0)
-   * 🏸 Bonus         → 0%    (never)
+   * STRICT WEIGHTED PROBABILITY LOGIC (FINAL)
+   * FIXED probability distribution - MUST NOT be altered dynamically
+   * 
+   * Distribution per 100 spins:
+   * 🎯 1 Year FREE   → 0%     → NEVER SELECTED
+   * ⚡ ₹4,999/Year   → 0.5%   → 0.0 - 0.5
+   * 🔥 ₹5,999/Year   → 1%     → 0.5 - 1.5
+   * ⭐ ₹6,999/Year   → 98.3%  → 1.5 - 99.8
+   * 💎 ₹7,999/Year   → 0.5%   → 99.8 - 100.0
+   * 🏸 Bonus         → 0%     → NEVER SELECTED
    */
   const getWeightedRandomSegment = (): number => {
-    // First check for ₹7,999 (0.5% random insertion as per rules)
-    if (Math.random() * 100 < 0.5) {
-      return 4; // 💎 ₹7,999 / Year
-    }
-    
-    // Generate random number 0-100 for range mapping
+    // Generate random number 0-100 for STRICT range mapping
     const random = Math.random() * 100;
     
-    // STRICT RANGE MAPPING - NO ROUNDING, NO ADJUSTMENT
-    if (random < 0.2) return 0;      // 🎯 1 Year FREE (0.0 - 0.2)
-    if (random < 0.7) return 1;      // ⚡ ₹4,999 (0.2 - 0.7)
-    if (random < 1.7) return 2;      // 🔥 ₹5,999 (0.7 - 1.7)
-    return 3;                         // ⭐ ₹6,999 (1.7 - 100.0)
-    // 🏸 Bonus (index 5) is never selected (0%)
+    // STRICT RANGE MAPPING - NO NORMALIZATION, NO REBALANCING
+    // 🎯 1 Year FREE (index 0) = NEVER SELECTED (0%)
+    // 🏸 Bonus (index 5) = NEVER SELECTED (0%)
+    
+    if (random < 0.5) return 1;       // ⚡ ₹4,999 (0.0 - 0.5) = 0.5%
+    if (random < 1.5) return 2;       // 🔥 ₹5,999 (0.5 - 1.5) = 1%
+    if (random < 99.8) return 3;      // ⭐ ₹6,999 (1.5 - 99.8) = 98.3%
+    return 4;                          // 💎 ₹7,999 (99.8 - 100.0) = 0.5%
   };
 
   const spin = () => {
