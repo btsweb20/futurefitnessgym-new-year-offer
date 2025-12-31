@@ -6,6 +6,7 @@ import RegistrationForm from '@/components/RegistrationForm';
 import ShareSection from '@/components/ShareSection';
 import TermsModal from '@/components/TermsModal';
 import CampaignStatus from '@/components/CampaignStatus';
+import useSourceProtection from '@/hooks/useSourceProtection';
 import { 
   generateFingerprint, 
   setCookie, 
@@ -18,10 +19,12 @@ const LOGO_URL = 'https://futurefitnessgymnellore.com/static/media/logo.2f698da7
 const INSTAGRAM_URL = 'https://www.instagram.com/futurefitnessgym_nellore/';
 const FACEBOOK_URL = 'https://www.facebook.com/FutureFitnessFamilyGYM/';
 
-// Campaign dates
+// Campaign dates (UPDATED)
+// Campaign Start: 25 December 2025 – 12:00 AM
+// Campaign End: 31 December 2025 – 11:50 PM
 const CAMPAIGN_START = new Date('2025-12-25T00:00:00');
-const CAMPAIGN_END = new Date('2025-12-31T23:59:59');
-const CAMPAIGN_EXPIRY = new Date('2026-01-01T00:00:00');
+const CAMPAIGN_END = new Date('2025-12-31T23:50:00');
+const CAMPAIGN_EXPIRY = new Date('2025-12-31T23:50:00');
 
 // Storage keys for spin blocking
 const SPIN_STORAGE_KEY = 'ffg_spin_completed';
@@ -34,6 +37,9 @@ const FINGERPRINT_KEY = 'ffg_device_fp';
 type CampaignStatusType = 'upcoming' | 'active' | 'ended';
 
 const Index = () => {
+  // Enable UI-level source protection
+  useSourceProtection();
+  
   const [campaignStatus, setCampaignStatus] = useState<CampaignStatusType>('active');
   const [isSpinning, setIsSpinning] = useState(false);
   const [hasSpun, setHasSpun] = useState(false);
